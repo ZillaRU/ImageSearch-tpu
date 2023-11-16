@@ -2,7 +2,7 @@ clip_image_search/__pycache__
 */__pycache__/*
 __pycache__
 my_test_imgs/*
-gallery_collection/*
+gallery_collection/*/*
 results/CH/*g
 results/EN/*g
 *.bmodel
