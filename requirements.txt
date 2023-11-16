@@ -1,0 +1,9 @@
+torch
+torchvision
+tokenizers
+faiss-cpu
+streamlit
+ftfy
+regex
+tqdm
+click
