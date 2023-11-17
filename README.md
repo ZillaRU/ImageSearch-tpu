@@ -27,7 +27,7 @@ streamlit run app.py EN # for CLIP-VIT-B32
 ```
 
 
-# Preprocess mannually
+# Preprocess manually
 ```
 python clip_image_search/extract_embeddings.py --img_dir your_dataset_dir --save_path results/embeddings.pkl
 
