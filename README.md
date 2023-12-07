@@ -13,9 +13,9 @@ pip install -r requirements.txt
 ```
 python -m pip install dfn
 # download CLIP VIT-b32 and put these files into ./clip_image_search/clip/bmodels/EN
-python3 -m dfn --url https://disk.sophgo.vip/sharing/vMGQRFYJ6
-# download ChineseCLIP VIT-16 and put these files into ./clip_image_search/clip/bmodels/CH
 python3 -m dfn --url https://disk.sophgo.vip/sharing/qw6hvmVWs
+# download ChineseCLIP VIT-16 and put these files into ./clip_image_search/clip/bmodels/CH
+python3 -m dfn --url python3 -m dfn --url https://disk.sophgo.vip/sharing/optDG3uDs
 ```
 
 
