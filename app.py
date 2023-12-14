@@ -90,7 +90,7 @@ if __name__ == '__main__':
                 features = None
             else:
                 with torch.no_grad():
-                    text = clip.tokenize([query_text])
+                    text = clip.ch_tokenize([query_text]) if lang == 'CH' else clip.en_tokenize([query_text])
                     features = model.encode_text(text)
         
         if features is not None:
@@ -139,7 +139,7 @@ if __name__ == '__main__':
                         # import subprocess
                         os.mkdir(index_path)
                         extraction_cmd = f''' python3 ./clip_image_search/extract_embeddings.py \
-                                --lang {glo_config.get_value('lang')} \
+                                --language {glo_config.get_value('lang')} \
                                 --img_dir {gallery_path} \
                                 --save_path {os.path.join(index_path, 'embeddings.pkl')} \
                                 --batch_size {batchsize}\
@@ -163,4 +163,6 @@ if __name__ == '__main__':
             new_gallery_files = st.file_uploader("Add images", type=['jpg', 'jpeg', 'png'], accept_multiple_files=True)
             batchsize = st.radio("Batch size", (1, 8), index=1, horizontal=True)
             num_worker = st.slider("Num of workers", 1, 8, 8)
-            submit_button = st.form_submit_button(label='Submit', on_click=create_gallery)
+            submit_button = st.form_submit_button(label='Submit')
+            if submit_button:
+                create_gallery()
