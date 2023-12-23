@@ -59,7 +59,7 @@ def en_tokenize(texts: Union[str, List[str]], context_length: int = 77, truncate
 
 from tokenizers import Tokenizer
 ch_tokenizer = Tokenizer.from_file("./clip_image_search/clip/saved_tokenizer/bert_chinese_tokenizer-fast/fast_tokenizer.json")
-def tokenize(texts: Union[str, List[str]], context_length: int = 52, truncate: bool = True) -> Union[torch.IntTensor, torch.LongTensor]:
+def ch_tokenize(texts: Union[str, List[str]], context_length: int = 52, truncate: bool = True) -> Union[torch.IntTensor, torch.LongTensor]:
     tokens_and_encodings = ch_tokenizer.encode_batch(
         texts,
         add_special_tokens=True,
