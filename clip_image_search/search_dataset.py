@@ -5,14 +5,14 @@ from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class ClipSearchDataset(Dataset):
-    def __init__(self, img_dir,  img_ext_list = ['.jpg', '.png', '.jpeg', '.tiff'], preprocess = None, mode = None, updeate_list = None):
+    def __init__(self, img_dir,  img_ext_list = ['.jpg', '.png', '.jpeg', '.tiff'], preprocess = None, mode = None, update_list = None):
         self.preprocess = preprocess
         self.img_path_list = []
-        self.update_list = updeate_list
+        self.update_list = update_list
         if mode is None:
             self.walk_dir(img_dir, img_ext_list)
             print(f'Found {len(self.img_path_list)} images in {img_dir}')
-        elif mode == 'update' and updeate_list is not None:
+        elif mode == 'update' and update_list is not None:
             self.update_db()
             print(f'Found {len(self.img_path_list)} new images in {img_dir}')
 
@@ -31,8 +31,6 @@ class ClipSearchDataset(Dataset):
     def update_db(self):
         for img_path in self.update_list:
             self.img_path_list.append(img_path) # root+dir+files
-
-
 
     def __len__(self):
         return len(self.img_path_list)
