@@ -6,6 +6,7 @@ import faiss
 import numpy as np
 import torch
 import time
+import shutil
 st.set_page_config(layout="wide")
 
 @st.cache_resource
@@ -35,7 +36,7 @@ if __name__ == '__main__':
     glo_config._init()
     glo_config.set_value('lang', lang)
     import clip_image_search.clip as clip
-    st.sidebar.title('ImgSearch with Airbox⚡')
+    st.sidebar.title('ImgSearch with Airbox⚡👀')
 
     device = 0
     model, preprocess = load_clip(lang, device)
@@ -58,12 +59,53 @@ if __name__ == '__main__':
         num_search = st.sidebar.slider('Number of search results', 1, 10, 5)
         images_per_row = st.sidebar.slider('Images per row', 1, num_search, min(5, num_search))
         uploaded_files = st.sidebar.file_uploader("Add images to gallery", type=['jpg', 'jpeg', 'png'], accept_multiple_files=True)
-        if uploaded_files is not None:
+        submit_button = st.sidebar.button("Submit")
+        if uploaded_files != [] and submit_button:
+            update_temp_folder = os.path.join(GALLERY_COLLECTION, "update_temp")
+            if not os.path.exists(update_temp_folder):
+                os.makedirs(update_temp_folder)
+
             for file in uploaded_files:
-                file_path = os.path.join(GALLERY_COLLECTION, file.name)
+                file_path = os.path.join(GALLERY_COLLECTION, selected_galley, file.name)
+                temp_path = os.path.join(update_temp_folder, file.name)
+
                 with open(file_path, "wb") as f:
                     f.write(file.read())
                 st.write(f"File saved to {file_path}")
+
+                with open(temp_path, "wb") as f:
+                    f.write(file.read())
+
+            # if uploaded_files_list is not None:
+            gallery_path = os.path.join(GALLERY_COLLECTION, selected_galley)
+            index_path = os.path.join(INDEX_COLLECTION, selected_galley)
+            extraction_cmd = f''' python3 ./clip_image_search/extract_embeddings.py \
+                    --language {glo_config.get_value('lang')} \
+                    --img_dir {gallery_path} \
+                    --save_path {os.path.join(index_path, 'embeddings.pkl')} \
+                    --batch_size {8}\
+                    --num_workers {8}\
+                    --mode {'update'}\
+                    --update_dir {update_temp_folder}
+                '''
+
+            st.write('Loading image encoder and extracting new embeddings ...')
+            st_time = time.time()
+            os.system(extraction_cmd)
+            st.write(f'Extraction finished in {time.time() - st_time} sec. \nStart building new index...')
+
+            index_cmd = f''' python3 ./clip_image_search/build_index.py \
+                --embeddings_path {os.path.join(index_path, 'embeddings.pkl')} \
+                --save_path {os.path.join(index_path, 'index.faiss')}
+            '''
+            st_time = time.time()
+            os.system(index_cmd)
+            st.write(f'Buliding new index finished in {time.time() - st_time} sec.')
+
+            shutil.rmtree(update_temp_folder)
+            load_db.clear()
+            st.rerun()
+
         
         if search_mode == 'Image':
             img_idx = st.slider('Image index', 0, len(embedding_path_list)-1, 0)
@@ -121,43 +163,50 @@ if __name__ == '__main__':
                 if new_gallery_files is None:
                     st.error('No images selected')
                     return
-                if new_gallery_name.strip()!= "" and new_gallery_name != DUMMY_NEW and new_gallery_name not in gallery_list:
+
+                if new_gallery_name.strip() != "" and new_gallery_name != DUMMY_NEW and new_gallery_name in gallery_list:
+                    st.error(f"Gallery {new_gallery_name} already exists.")
+
+                elif new_gallery_name.strip() != "" and new_gallery_name != DUMMY_NEW:
                     gallery_path = os.path.join(GALLERY_COLLECTION, new_gallery_name)
                     index_path = os.path.join(INDEX_COLLECTION, new_gallery_name)
-                    if os.path.exists(gallery_path):
-                        st.error(f"Gallery {new_gallery_name} already exists.")
-                    else:
-                        os.mkdir(gallery_path)
-                        for file in new_gallery_files:
-                            file_path = os.path.join(gallery_path, file.name)
-                            with open(file_path, "wb") as f:
-                                f.write(file.read())
-                        st.write(f"Files saved to {gallery_path}")
-                    if os.path.exists(index_path):
-                        st.error(f"{glo_config.get_value('lang')} Index {new_gallery_name} already exists")
-                    else:
+                    os.mkdir(gallery_path)
+                    for file in new_gallery_files:
+                        file_path = os.path.join(gallery_path, file.name)
+                        with open(file_path, "wb") as f:
+                            f.write(file.read())
+                    st.write(f"Files saved to {gallery_path}")
+
+                    # if os.path.exists(index_path):
+                    #     st.error(f"{glo_config.get_value('lang')} Index {new_gallery_name} already exists")
+                    # else:
                         # import subprocess
-                        os.mkdir(index_path)
-                        extraction_cmd = f''' python3 ./clip_image_search/extract_embeddings.py \
-                                --language {glo_config.get_value('lang')} \
-                                --img_dir {gallery_path} \
-                                --save_path {os.path.join(index_path, 'embeddings.pkl')} \
-                                --batch_size {batchsize}\
-                                --num_workers {num_worker}
-                            '''
-                        # show logs using streamlit
-                        # subprocess.run(extraction_cmd, shell=True)
-                        st.write('Loading image encoder and extracting embeddings ...')
-                        import time; st_time = time.time()
-                        os.system(extraction_cmd)
-                        st.write(f'Extraction finished in {time.time() - st_time} sec. \nStart building index...')
-                        index_cmd = f''' python3 ./clip_image_search/build_index.py \
-                            --embeddings_path {os.path.join(index_path, 'embeddings.pkl')} \
-                            --save_path {os.path.join(index_path, 'index.faiss')}
+                    os.mkdir(index_path)
+                    extraction_cmd = f''' python3 ./clip_image_search/extract_embeddings.py \
+                            --language {glo_config.get_value('lang')} \
+                            --img_dir {gallery_path} \
+                            --save_path {os.path.join(index_path, 'embeddings.pkl')} \
+                            --batch_size {batchsize}\
+                            --num_workers {num_worker}\
+                            --mode {'create'}
                         '''
-                        st_time = time.time()
-                        os.system(index_cmd)
-                        st.write(f'Buliding index finished in {time.time() - st_time} sec.')
+                    # show logs using streamlit
+                    # subprocess.run(extraction_cmd, shell=True)
+                    st.write('Loading image encoder and extracting embeddings ...')
+                    print('Loading image encoder and extracting embeddings ...')
+                    st_time = time.time()
+                    os.system(extraction_cmd)
+                    st.write(f'Extraction finished in {time.time() - st_time} sec. \nStart building index...')
+
+                    index_cmd = f''' python3 ./clip_image_search/build_index.py \
+                        --embeddings_path {os.path.join(index_path, 'embeddings.pkl')} \
+                        --save_path {os.path.join(index_path, 'index.faiss')}
+                    '''
+                    st_time = time.time()
+                    os.system(index_cmd)
+                    st.write(f'Buliding index finished in {time.time() - st_time} sec.')
+
+                    st.rerun()
             
             new_gallery_name = st.text_input("New gallery name", value='', key=None)
             new_gallery_files = st.file_uploader("Add images", type=['jpg', 'jpeg', 'png'], accept_multiple_files=True)

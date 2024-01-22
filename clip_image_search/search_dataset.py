@@ -5,11 +5,17 @@ from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class ClipSearchDataset(Dataset):
-    def __init__(self, img_dir,  img_ext_list = ['.jpg', '.png', '.jpeg', '.tiff'], preprocess = None):    
+    def __init__(self, img_dir,  img_ext_list = ['.jpg', '.png', '.jpeg', '.tiff'], preprocess = None, mode = None, updeate_list = None):
         self.preprocess = preprocess
         self.img_path_list = []
-        self.walk_dir(img_dir, img_ext_list)
-        print(f'Found {len(self.img_path_list)} images in {img_dir}')
+        self.update_list = updeate_list
+        if mode is None:
+            self.walk_dir(img_dir, img_ext_list)
+            print(f'Found {len(self.img_path_list)} images in {img_dir}')
+        elif mode == 'update' and updeate_list is not None:
+            self.update_db()
+            print(f'Found {len(self.img_path_list)} new images in {img_dir}')
+
 
     def walk_dir(self, dir_path, img_ext_list): # work for symbolic link
         for root, dirs, files in os.walk(dir_path):
@@ -21,6 +27,12 @@ class ClipSearchDataset(Dataset):
                 full_dir_path = os.path.join(root, dir)
                 if os.path.islink(full_dir_path):
                     self.walk_dir(full_dir_path, img_ext_list)
+
+    def update_db(self):
+        for img_path in self.update_list:
+            self.img_path_list.append(img_path) # root+dir+files
+
+
 
     def __len__(self):
         return len(self.img_path_list)

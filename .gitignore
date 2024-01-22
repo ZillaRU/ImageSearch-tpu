@@ -6,3 +6,5 @@ gallery_collection/*/*
 results/CH/*g
 results/EN/*g
 *.bmodel
+.idea/
+.venv/
