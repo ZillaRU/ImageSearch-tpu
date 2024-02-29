@@ -44,7 +44,7 @@ def compute_embeddings(language, img_dir, save_path, batch_size, num_workers, mo
         update_list = [os.path.join(img_dir, file) for file in os.listdir(update_dir)]
         for lang in _langs:
             model, preprocess = clip.load(lang, device, batch_size=batch_size, processing=True)
-            dataset = ClipSearchDataset(img_dir=img_dir, preprocess=preprocess, mode='update', updeate_list=update_list)
+            dataset = ClipSearchDataset(img_dir=img_dir, preprocess=preprocess, mode='update', update_list=update_list)
             dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
             with open(save_path, 'rb') as f:
