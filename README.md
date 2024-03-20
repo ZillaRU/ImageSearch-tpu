@@ -46,3 +46,5 @@ rm -rf ./gallery_collection/*
 rm -rf results/CH/*
 rm -rf results/EN/*
 ```
+# ⚠The number of workers for preprocessing during feature extraction is set to 8 by default.
+If your device memory is less than 1G, please set the number of workers to a smaller value to prevent crashing.
